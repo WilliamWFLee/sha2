@@ -1,3 +1,8 @@
+from typing import List
+
+# Constants
+WORD_SIZE = 32
+
 # Constant words, K0 to K63
 # These are the first 32 bits of the fractional part of the cube root
 # of the first 64 prime numbers
@@ -67,3 +72,19 @@ K = (
     0xBEF9A3F7,
     0xC67178F2,
 )
+
+
+def right_shift(x, n):
+    return x >> n
+
+
+def right_rotate(x, n):
+    return (x >> n) | (x << (WORD_SIZE - n)) % 2 ** WORD_SIZE
+
+
+def xor(a, b):
+    return a ^ b
+
+
+def add(a, b):
+    return (a + b) % 2 ** WORD_SIZE
