@@ -132,6 +132,6 @@ def preprocess(m: bytes) -> List[List[bytes]]:
 def calculate_message_schedule(words: List[bytes]):
     w = words[:]
     for i in range(16, 64):
-        w += sigma_1(w[i - 2]) | w[i - 7] | sigma_0(w[i - 15]) | w[i - 16]
+        w += [(sigma_1(w[i - 2]) + w[i - 7] + sigma_0(w[i - 15]) + w[i - 16]) % 2 ** WORD_SIZE]
 
     return w
