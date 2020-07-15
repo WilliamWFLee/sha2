@@ -119,11 +119,11 @@ def preprocess(m: bytes) -> List[List[int]]:
 
     blocks = []
 
-    for i in range(0, l, (BLOCK_SIZE / 8)):
-        block = m[i : i + (BLOCK_SIZE / 8)]
+    for i in range(0, l, (BLOCK_SIZE // 8)):
+        block = m[i : i + (BLOCK_SIZE // 8)]
         words = []
-        for j in range(0, (BLOCK_SIZE / 8), (WORD_SIZE / 8)):
-            words += [int.from_bytes(block[j : j + (WORD_SIZE / 8)], "big")]
+        for j in range(0, (BLOCK_SIZE // 8), (WORD_SIZE // 8)):
+            words += [int.from_bytes(block[j : j + (WORD_SIZE // 8)], "big")]
         blocks += [words]
 
     return blocks
@@ -167,4 +167,4 @@ def hash(message: bytes = None) -> bytes:
 
     H = [(reg + h) % 2 ** WORD_SIZE for reg, h in zip((a, b, c, d, e, f, g, h), H)]
 
-    return b''.join(h.to_bytes(WORD_SIZE / 8, "big") for h in H)
+    return b''.join(h.to_bytes(WORD_SIZE // 8, "big") for h in H)
