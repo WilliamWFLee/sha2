@@ -74,9 +74,9 @@ K = (
 )
 
 
-def right_shift(x, n):
+def r_shift(x, n):
     return x >> n
 
 
-def right_rotate(x, n):
+def r_rotate(x, n):
     return (x >> n) | (x << (WORD_SIZE - n)) % 2 ** WORD_SIZE
