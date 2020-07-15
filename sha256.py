@@ -108,7 +108,7 @@ def sigma_1(x):
     return r_shift(x, 17) ^ r_shift(x, 19) ^ r_rotate(x, 10)
 
 
-def preprocess(m: bytes) -> List[List[bytes]]:
+def preprocess(m: bytes) -> List[List[int]]:
     l = len(m)
     if len(m) % (BLOCK_SIZE / 8):
         k = (447 - l * 8) % BLOCK_SIZE
@@ -123,7 +123,7 @@ def preprocess(m: bytes) -> List[List[bytes]]:
         block = m[i : i + (BLOCK_SIZE / 8)]
         words = []
         for j in range(0, (BLOCK_SIZE / 8), (WORD_SIZE / 8)):
-            words += [block[j : j + (WORD_SIZE / 8)]]
+            words += [int.from_bytes(block[j : j + (WORD_SIZE / 8)], "big")]
         blocks += [words]
 
     return blocks
