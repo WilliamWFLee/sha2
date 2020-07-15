@@ -1,7 +1,9 @@
+import math
 from typing import List
 
-# Constants
+# Constants in bits
 WORD_SIZE = 32
+BLOCK_SIZE = 512
 
 # Constant words, K0 to K63
 # These are the first 32 bits of the fractional part of the cube root
@@ -104,3 +106,24 @@ def sigma_0(x):
 
 def sigma_1(x):
     return r_shift(x, 17) ^ r_shift(x, 19) ^ r_rotate(x, 10)
+
+
+def preprocess(m: bytes) -> List[List[bytes]]:
+    l = len(m)
+    if len(m) % (BLOCK_SIZE / 8):
+        k = (447 - l * 8) % BLOCK_SIZE
+
+        zeroes = (1 << k).to_bytes(math.ceil(k / 8), "big")
+        length = (l * 8).to_bytes(8, "big")
+        m = m + zeroes + length
+
+    blocks = []
+
+    for i in range(0, l, (BLOCK_SIZE / 8)):
+        block = m[i : i + (BLOCK_SIZE / 8)]
+        words = []
+        for j in range(0, (BLOCK_SIZE / 8), (WORD_SIZE / 8)):
+            words += [block[j : j + (WORD_SIZE / 8)]]
+        blocks += [words]
+
+    return blocks
