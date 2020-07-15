@@ -80,11 +80,3 @@ def right_shift(x, n):
 
 def right_rotate(x, n):
     return (x >> n) | (x << (WORD_SIZE - n)) % 2 ** WORD_SIZE
-
-
-def xor(a, b):
-    return a ^ b
-
-
-def add(a, b):
-    return (a + b) % 2 ** WORD_SIZE
