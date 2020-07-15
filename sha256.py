@@ -160,7 +160,7 @@ def hash(message: bytes = None) -> bytes:
     for block in blocks:
         a, b, c, d, e, f, g, h = H
         msg_sched = calculate_message_schedule(block)
-        for w, k in (msg_sched, K):
+        for w, k in zip(msg_sched, K):
             t1 = (h + usigma_1(e) + ch(e, f, g) + k + w) % (2 ** BLOCK_SIZE)
             t2 = usigma_0(a) + maj(a, b, c)
             a, b, c, d, e, f, g, h = (g, f, e, d + t1, c, b, a, t1 + t2)
