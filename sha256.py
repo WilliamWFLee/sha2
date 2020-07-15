@@ -80,3 +80,27 @@ def r_shift(x, n):
 
 def r_rotate(x, n):
     return (x >> n) | (x << (WORD_SIZE - n)) % 2 ** WORD_SIZE
+
+
+def ch(x, y, z):
+    return (x & y) ^ (~x & z)
+
+
+def maj(x, y, z):
+    return (x & y) ^ (x & z) ^ (y & z)
+
+
+def usigma_0(x):
+    return r_shift(x, 2) ^ r_shift(x, 13) ^ r_shift(x, 22)
+
+
+def usigma_1(x):
+    return r_shift(x, 6) ^ r_shift(x, 11) ^ r_shift(x, 25)
+
+
+def sigma_0(x):
+    return r_shift(x, 7) ^ r_shift(x, 18) ^ r_rotate(x, 3)
+
+
+def sigma_1(x):
+    return r_shift(x, 17) ^ r_shift(x, 19) ^ r_rotate(x, 10)
