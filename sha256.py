@@ -110,7 +110,7 @@ def sigma_1(x):
 
 def preprocess(m: bytes) -> List[List[int]]:
     l = len(m)
-    if len(m) % (BLOCK_SIZE / 8):
+    if len(m) % (BLOCK_SIZE // 8):
         k = (447 - l * 8) % BLOCK_SIZE
 
         zeroes = (1 << k).to_bytes(math.ceil(k / 8), "big")
@@ -129,9 +129,42 @@ def preprocess(m: bytes) -> List[List[int]]:
     return blocks
 
 
-def calculate_message_schedule(words: List[bytes]):
+def calculate_message_schedule(words: List[int]) -> List[int]:
     w = words[:]
     for i in range(16, 64):
-        w += [(sigma_1(w[i - 2]) + w[i - 7] + sigma_0(w[i - 15]) + w[i - 16]) % 2 ** WORD_SIZE]
+        w += [
+            (sigma_1(w[i - 2]) + w[i - 7] + sigma_0(w[i - 15]) + w[i - 16])
+            % 2 ** WORD_SIZE
+        ]
 
     return w
+
+
+def hash(message: bytes = None) -> bytes:
+    # The initial hash value
+    # These are the first 32 bits of the fractional parts
+    # of the square roots of the first eight prime numbers
+    H = [
+        0x6A09E667,
+        0xBB67AE85,
+        0x3C6EF372,
+        0xA54FF53A,
+        0x510E527F,
+        0x9B05688C,
+        0x1F83D9AB,
+        0x5BE0CD19,
+    ]
+
+    # Processes the message into a list of blocks, each a list of words
+    blocks = preprocess(message)
+    for block in blocks:
+        a, b, c, d, e, f, g, h = H
+        msg_sched = calculate_message_schedule(block)
+        for w, k in (msg_sched, K):
+            t1 = (h + usigma_1(e) + ch(e, f, g) + k + w) % (2 ** BLOCK_SIZE)
+            t2 = usigma_0(a) + maj(a, b, c)
+            a, b, c, d, e, f, g, h = (g, f, e, d + t1, c, b, a, t1 + t2)
+
+    H = [(reg + h) % 2 ** WORD_SIZE for reg, h in zip((a, b, c, d, e, f, g, h), H)]
+
+    return b''.join(h.to_bytes(WORD_SIZE / 8, "big") for h in H)
