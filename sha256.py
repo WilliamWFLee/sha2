@@ -165,6 +165,6 @@ def hash(message: bytes = None) -> bytes:
             t2 = usigma_0(a) + maj(a, b, c)
             a, b, c, d, e, f, g, h = (g, f, e, d + t1, c, b, a, t1 + t2)
 
-    H = [(reg + h) % 2 ** WORD_SIZE for reg, h in zip((a, b, c, d, e, f, g, h), H)]
+        H = [(reg + h) % 2 ** WORD_SIZE for reg, h in zip((a, b, c, d, e, f, g, h), H)]
 
     return b''.join(h.to_bytes(WORD_SIZE // 8, "big") for h in H)
