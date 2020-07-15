@@ -140,7 +140,7 @@ def calculate_message_schedule(words: List[int]) -> List[int]:
     return w
 
 
-def hash(message: bytes = None) -> bytes:
+def hash(message: bytes = b"") -> bytes:
     # The initial hash value
     # These are the first 32 bits of the fractional parts
     # of the square roots of the first eight prime numbers
