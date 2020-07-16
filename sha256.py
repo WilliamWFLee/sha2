@@ -76,12 +76,16 @@ K = (
 )
 
 
+def bit_not(x):
+    return (1 << WORD_SIZE) - 1 - x
+
+
 def r_rotate(x, n):
     return ((x >> n) | x << (WORD_SIZE - n)) % (2 ** WORD_SIZE)
 
 
 def ch(x, y, z):
-    return (x & y) ^ (~x & z)
+    return (x & y) ^ (bit_not(x) & z)
 
 
 def maj(x, y, z):
@@ -156,9 +160,17 @@ def compute_hash(message: bytes = b"") -> bytes:
         a, b, c, d, e, f, g, h = H
         msg_sched = calculate_message_schedule(block)
         for w, k in zip(msg_sched, K):
-            t1 = h + usigma_1(e) + ch(e, f, g) + k + w
-            t2 = usigma_0(a) + maj(a, b, c)
-            a, b, c, d, e, f, g, h = (t1 + t2, a, b, c, d + t1, e, f, g)
+            t1 = (h + usigma_1(e) + ch(e, f, g) + k + w) % (2 ** WORD_SIZE)
+            t2 = usigma_0(a) + maj(a, b, c) % (2 ** WORD_SIZE)
+
+            h = g
+            g = f
+            f = e
+            e = (d + t1) % (2 ** WORD_SIZE)
+            d = c
+            c = b
+            b = a
+            a = (t1 + t2) % (2 ** WORD_SIZE)
 
         H = [
             (reg + word) % (2 ** WORD_SIZE)
