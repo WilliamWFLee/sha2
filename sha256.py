@@ -118,6 +118,10 @@ class SHA2(ABC):
 
 
 class SHA256(SHA2):
+    """
+    Class for SHA256 hash objects
+    """
+
     WORD_SIZE = 32
     BLOCK_SIZE = 512
     LENGTH_BLOCK_SIZE = 64
