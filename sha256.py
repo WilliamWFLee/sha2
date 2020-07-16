@@ -161,7 +161,8 @@ def compute_hash(message: bytes = b"") -> bytes:
             a, b, c, d, e, f, g, h = (t1 + t2, a, b, c, d + t1, e, f, g)
 
         H = [
-            (reg + word) % (2 ** WORD_SIZE) for reg, word in zip((a, b, c, d, e, f, g, h), H)
+            (reg + word) % (2 ** WORD_SIZE)
+            for reg, word in zip((a, b, c, d, e, f, g, h), H)
         ]
 
     return b"".join(h.to_bytes(WORD_SIZE // 8, "big") for h in H)
@@ -169,3 +170,7 @@ def compute_hash(message: bytes = b"") -> bytes:
 
 def to_hex(digest: bytes):
     return f"{int.from_bytes(digest, 'big'):x}"
+
+
+if __name__ == "__main__":
+    print(to_hex(compute_hash(b"")))
