@@ -1,4 +1,11 @@
+import pytest
+
 from sha256 import SHA256
+
+
+@pytest.fixture
+def hasher():
+    return SHA256()
 
 
 def test_bit_not():
@@ -68,3 +75,16 @@ def test_preprocess():
             0x00000018,
         ]
     ]
+
+
+def test_hash(hasher):
+    assert (
+        hasher.to_hex(hasher.compute_hash(b""))
+        == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    )
+
+    assert (
+        hasher.to_hex(hasher.compute_hash(b"abc"))
+        == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    )
+
