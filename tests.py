@@ -1,34 +1,34 @@
-import sha256
+from sha256 import SHA256
 
 
 def test_bit_not():
-    assert sha256.bit_not(0b10010010) == 0b11111111111111111111111101101101
-    assert sha256.bit_not(sha256.bit_not(0b10010010)) == 0b10010010
+    assert SHA256.bit_not(0b10010010) == 0b11111111111111111111111101101101
+    assert SHA256.bit_not(SHA256.bit_not(0b10010010)) == 0b10010010
     assert (
-        sha256.bit_not(0b10101001010100100100101001010110)
+        SHA256.bit_not(0b10101001010100100100101001010110)
         == 0b01010110101011011011010110101001
     )
 
 
 def test_r_rotate():
-    assert sha256.r_rotate(0b10010000, 4) == 0b1001
-    assert sha256.r_rotate(0b10100101, 2) == 0b01000000000000000000000000101001
-    assert sha256.r_rotate(0b1000, 4) == 2 ** 31
+    assert SHA256.r_rotate(0b10010000, 4) == 0b1001
+    assert SHA256.r_rotate(0b10100101, 2) == 0b01000000000000000000000000101001
+    assert SHA256.r_rotate(0b1000, 4) == 2 ** 31
 
 
 def test_ch():
-    assert sha256.ch(0b101010, 0b100100, 0b101110) == 0b100100
-    assert sha256.ch(0b111111, 0b101010, 0b101011) == 0b101010
-    assert sha256.ch(0b000000, 0b100101, 0b111010) == 0b111010
+    assert SHA256.ch(0b101010, 0b100100, 0b101110) == 0b100100
+    assert SHA256.ch(0b111111, 0b101010, 0b101011) == 0b101010
+    assert SHA256.ch(0b000000, 0b100101, 0b111010) == 0b111010
 
 
 def test_maj():
-    assert sha256.maj(0b110011, 0b101010, 0b001010) == 0b101010
-    assert sha256.maj(0b101010, 0b010101, 0b000000) == 0b000000
+    assert SHA256.maj(0b110011, 0b101010, 0b001010) == 0b101010
+    assert SHA256.maj(0b101010, 0b010101, 0b000000) == 0b000000
 
 
 def test_preprocess():
-    assert sha256.preprocess(b"") == [
+    assert SHA256._preprocess(b"") == [
         [
             0x80000000,
             0x00000000,
@@ -48,7 +48,7 @@ def test_preprocess():
             0x00000000,
         ]
     ]
-    assert sha256.preprocess(b"abc") == [
+    assert SHA256._preprocess(b"abc") == [
         [
             0x61626380,
             0x00000000,
