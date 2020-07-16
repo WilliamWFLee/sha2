@@ -77,7 +77,7 @@ K = (
 
 
 def r_rotate(x, n):
-    return (x >> n) | x << (WORD_SIZE - n)
+    return ((x >> n) | x << (WORD_SIZE - n)) % (2 ** WORD_SIZE)
 
 
 def ch(x, y, z):
