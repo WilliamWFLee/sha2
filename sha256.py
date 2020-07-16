@@ -80,9 +80,8 @@ class SHA2(ABC):
     @classmethod
     def _preprocess(cls, m: bytes) -> List[List[int]]:
         k = (cls.BLOCK_SIZE - cls.LENGTH_BLOCK_SIZE - 1 - len(m) * 8) % cls.BLOCK_SIZE
-
-        zeroes = (1 << k).to_bytes(math.ceil(k / 8), "big")
-        length = (len(m) * 8).to_bytes(8, "big")
+        zeroes = (1 << k).to_bytes((k + 1) // 8, "big")
+        length = (len(m) * 8).to_bytes(cls.LENGTH_BLOCK_SIZE // 8, "big")
         m = m + zeroes + length
 
         blocks = []
@@ -112,8 +111,8 @@ class SHA2(ABC):
         blocks = self._preprocess(message)
         for block in blocks:
             a, b, c, d, e, f, g, h = H
-            msg_sched = self._expand_message_block(block)
-            for w, k in zip(msg_sched, self.K):
+            W = self._expand_message_block(block)
+            for w, k in zip(W, self.K):
                 t1 = h + self.usigma_1(e) + self.ch(e, f, g) + k + w
                 t2 = self.usigma_0(a) + self.maj(a, b, c)
 
@@ -127,8 +126,8 @@ class SHA2(ABC):
                 a = (t1 + t2) % (2 ** self.WORD_SIZE)
 
             H = [
-                (reg + word) % (2 ** self.WORD_SIZE)
-                for reg, word in zip((a, b, c, d, e, f, g, h), H)
+                (r + w) % (2 ** self.WORD_SIZE)
+                for r, w in zip((a, b, c, d, e, f, g, h), H)
             ]
 
         return b"".join(h.to_bytes(self.WORD_SIZE // 8, "big") for h in H)
