@@ -93,19 +93,19 @@ def maj(x, y, z):
 
 
 def usigma_0(x):
-    return (x >> 2) ^ (x >> 13) ^ (x >> 22)
+    return r_rotate(x, 2) ^ r_rotate(x, 13) ^ r_rotate(x, 22)
 
 
 def usigma_1(x):
-    return (x >> 6) ^ (x >> 11) ^ (x >> 25)
+    return r_rotate(x, 6) ^ r_rotate(x, 11) ^ r_rotate(x, 25)
 
 
 def sigma_0(x):
-    return (x >> 7) ^ (x >> 18) ^ r_rotate(x, 3)
+    return r_rotate(x, 7) ^ r_rotate(x, 18) ^ (x >> 3)
 
 
 def sigma_1(x):
-    return (x >> 17) ^ (x >> 19) ^ r_rotate(x, 10)
+    return r_rotate(x, 17) ^ r_rotate(x, 19) ^ (x >> 10)
 
 
 def preprocess(m: bytes) -> List[List[int]]:
@@ -160,8 +160,8 @@ def compute_hash(message: bytes = b"") -> bytes:
         a, b, c, d, e, f, g, h = H
         msg_sched = calculate_message_schedule(block)
         for w, k in zip(msg_sched, K):
-            t1 = (h + usigma_1(e) + ch(e, f, g) + k + w) % (2 ** WORD_SIZE)
-            t2 = usigma_0(a) + maj(a, b, c) % (2 ** WORD_SIZE)
+            t1 = h + usigma_1(e) + ch(e, f, g) + k + w
+            t2 = usigma_0(a) + maj(a, b, c)
 
             h = g
             g = f
