@@ -160,10 +160,16 @@ def compute_hash(message: bytes = b"") -> bytes:
         a, b, c, d, e, f, g, h = H
         msg_sched = calculate_message_schedule(block)
         for w, k in zip(msg_sched, K):
-            t1 = (h + usigma_1(e) + ch(e, f, g) + k + w) % (2 ** BLOCK_SIZE)
+            t1 = h + usigma_1(e) + ch(e, f, g) + k + w
             t2 = usigma_0(a) + maj(a, b, c)
-            a, b, c, d, e, f, g, h = (g, f, e, d + t1, c, b, a, t1 + t2)
+            a, b, c, d, e, f, g, h = (t1 + t2, a, b, c, d + t1, e, f, g)
 
-        H = [(reg + h) % 2 ** WORD_SIZE for reg, h in zip((a, b, c, d, e, f, g, h), H)]
+        H = [
+            (reg + word) % (2 ** WORD_SIZE) for reg, word in zip((a, b, c, d, e, f, g, h), H)
+        ]
 
-    return b''.join(h.to_bytes(WORD_SIZE // 8, "big") for h in H)
+    return b"".join(h.to_bytes(WORD_SIZE // 8, "big") for h in H)
+
+
+def to_hex(digest: bytes):
+    return f"{int.from_bytes(digest, 'big'):x}"
