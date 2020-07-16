@@ -1,6 +1,6 @@
 import math
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Tuple
 
 
 class SHA2(ABC):
@@ -19,6 +19,12 @@ class SHA2(ABC):
     K: tuple
     # The initial hash value, as a tuple of word-sized integers
     H: tuple
+
+    def __init__(self):
+        # The current state of the hash algorithm
+        self._hash = list(self.H)
+        # The last block (complete or partial) to be added to the hash object
+        self._last_block = b""
 
     @staticmethod
     def to_hex(digest: bytes):
@@ -78,22 +84,21 @@ class SHA2(ABC):
         pass
 
     @classmethod
-    def _preprocess(cls, m: bytes) -> List[List[int]]:
-        k = (cls.BLOCK_SIZE - cls.LENGTH_BLOCK_SIZE - 1 - len(m) * 8) % cls.BLOCK_SIZE
-        zeroes = (1 << k).to_bytes((k + 1) // 8, "big")
-        length = (len(m) * 8).to_bytes(cls.LENGTH_BLOCK_SIZE // 8, "big")
-        m = m + zeroes + length
-
+    def _process(cls, m: bytes) -> Tuple[List[List[int]], bytes]:
+        """Processes an arbitrary-length bytes object in a list of blocks,
+        each block a list of words, with the words and blocks
+        the appropriate size for the algorithm.
+        """
         blocks = []
 
-        for i in range(0, len(m), (cls.BLOCK_SIZE // 8)):
-            block = m[i : i + (cls.BLOCK_SIZE // 8)]
+        for i in range(0, len(m) // (cls.BLOCK_SIZE // 8)):
+            block = m[i * (cls.BLOCK_SIZE // 8) : (i + 1) + (cls.BLOCK_SIZE // 8)]
             words = []
             for j in range(0, (cls.BLOCK_SIZE // 8), (cls.WORD_SIZE // 8)):
                 words += [int.from_bytes(block[j : j + (cls.WORD_SIZE // 8)], "big")]
             blocks += [words]
 
-        return blocks
+        return blocks, m[len(m) // (cls.BLOCK_SIZE // 8) * (cls.BLOCK_SIZE // 8) :]
 
     @classmethod
     def _expand_message_block(cls, words):
@@ -106,11 +111,26 @@ class SHA2(ABC):
 
         return w
 
-    def compute_hash(self, message: bytes) -> bytes:
-        H = list(self.H)
-        blocks = self._preprocess(message)
+    def _process_last_block(self) -> List[List[int]]:
+        """
+        Pads the final part of the message, and processes it into blocks
+        """
+        m = self._last_block
+        k = (
+            self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - 1 - len(m) * 8
+        ) % self.BLOCK_SIZE
+        zeroes = (1 << k).to_bytes((k + 1) // 8, "big")
+        length = (len(m) * 8).to_bytes(
+            self.LENGTH_BLOCK_SIZE // 8, "big"
+        )
+        m = m + zeroes + length
+
+        blocks, _ = self._process(m)
+        return blocks
+
+    def _compress(self, blocks: List[List[int]]):
         for block in blocks:
-            a, b, c, d, e, f, g, h = H
+            a, b, c, d, e, f, g, h = self._hash
             W = self._expand_message_block(block)
             for w, k in zip(W, self.K):
                 t1 = h + self.usigma_1(e) + self.ch(e, f, g) + k + w
@@ -125,12 +145,25 @@ class SHA2(ABC):
                 b = a
                 a = (t1 + t2) % (2 ** self.WORD_SIZE)
 
-            H = [
+            self._hash = [
                 (r + w) % (2 ** self.WORD_SIZE)
-                for r, w in zip((a, b, c, d, e, f, g, h), H)
+                for r, w in zip((a, b, c, d, e, f, g, h), self._hash)
             ]
 
-        return b"".join(h.to_bytes(self.WORD_SIZE // 8, "big") for h in H)
+    def update(self, message: bytes):
+        blocks, self._last_block = self._process(message)
+        self._compress(blocks)
+
+    def digest(self):
+        last_hash = self._hash[:]
+        self._compress(self._process_last_block())
+        digest = b"".join(h.to_bytes(self.WORD_SIZE // 8, "big") for h in self._hash)
+        self._hash = last_hash
+
+        return digest
+
+    def hexdigest(self):
+        return self.to_hex(self.digest())
 
 
 class SHA256(SHA2):
@@ -240,4 +273,5 @@ class SHA256(SHA2):
 
 if __name__ == "__main__":
     sha256 = SHA256()
-    print(SHA2.to_hex(sha256.compute_hash(b"")))
+    sha256.update(b"abc")
+    print(sha256.hexdigest())
