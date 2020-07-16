@@ -26,18 +26,35 @@ class SHA2(ABC):
 
     @classmethod
     def bit_not(cls, x):
+        """Implements a bitwise NOT operation on x 
+        as if it were an unsigned integer of length `cls.WORD_SIZE`.
+        """
         return (1 << cls.WORD_SIZE) - 1 - x
 
     @classmethod
     def r_rotate(cls, x, n):
+        """
+        Implements a right rotation of an integer `x` by `n` places,
+        to give an integer of length `cls.WORD_SIZE`.
+        """
         return ((x >> n) | x << (cls.WORD_SIZE - n)) % (2 ** cls.WORD_SIZE)
 
+    # The six logical functions used in the SHA-256
     @classmethod
     def ch(cls, x, y, z):
+        """For each binary digit, the binary digit of `y`
+        is chosen if the corresponding digit in `x` is `1`,
+        otherwise the binary digit of `z` is chosen.
+        """
         return (x & y) ^ (cls.bit_not(x) & z)
 
     @staticmethod
     def maj(x, y, z):
+        """A majority function.
+
+        For each binary digit, it is `1` if a majority of `x`, `y` or `z`
+        have `1` in the corresponding place, otherwise it is `0`.
+        """
         return (x & y) ^ (x & z) ^ (y & z)
 
     @classmethod
