@@ -76,10 +76,6 @@ K = (
 )
 
 
-def r_shift(x, n):
-    return x >> n
-
-
 def r_rotate(x, n):
     return (x >> n) | (x << (WORD_SIZE - n)) % 2 ** WORD_SIZE
 
@@ -93,19 +89,19 @@ def maj(x, y, z):
 
 
 def usigma_0(x):
-    return r_shift(x, 2) ^ r_shift(x, 13) ^ r_shift(x, 22)
+    return (x >> 2) ^ (x >> 13) ^ (x >> 22)
 
 
 def usigma_1(x):
-    return r_shift(x, 6) ^ r_shift(x, 11) ^ r_shift(x, 25)
+    return (x >> 6) ^ (x >> 11) ^ (x >> 25)
 
 
 def sigma_0(x):
-    return r_shift(x, 7) ^ r_shift(x, 18) ^ r_rotate(x, 3)
+    return (x >> 7) ^ (x >> 18) ^ r_rotate(x, 3)
 
 
 def sigma_1(x):
-    return r_shift(x, 17) ^ r_shift(x, 19) ^ r_rotate(x, 10)
+    return (x >> 17) ^ (x >> 19) ^ r_rotate(x, 10)
 
 
 def preprocess(m: bytes) -> List[List[int]]:
