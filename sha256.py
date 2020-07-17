@@ -25,6 +25,12 @@ class SHA2(ABC):
         self._hash = list(self.H)
         # The last block (complete or partial) to be added to the hash object
         self._last_block = b""
+        # The length of the message in bits
+        self._message_length = 0
+
+    @property
+    def message_length(self):
+        return self._message_length
 
     @staticmethod
     def to_hex(digest: bytes):
@@ -120,9 +126,7 @@ class SHA2(ABC):
             self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - 1 - len(m) * 8
         ) % self.BLOCK_SIZE
         zeroes = (1 << k).to_bytes((k + 1) // 8, "big")
-        length = (len(m) * 8).to_bytes(
-            self.LENGTH_BLOCK_SIZE // 8, "big"
-        )
+        length = self._message_length.to_bytes(self.LENGTH_BLOCK_SIZE // 8, "big")
         m = m + zeroes + length
 
         blocks, _ = self._process(m)
@@ -153,6 +157,7 @@ class SHA2(ABC):
     def update(self, message: bytes):
         blocks, self._last_block = self._process(self._last_block + message)
         self._compress(blocks)
+        self._message_length += len(message) * 8
 
     def digest(self):
         last_hash = self._hash[:]
@@ -273,5 +278,5 @@ class SHA256(SHA2):
 
 if __name__ == "__main__":
     sha256 = SHA256()
-    sha256.update(b"abc")
+    sha256.update(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")
     print(sha256.hexdigest())

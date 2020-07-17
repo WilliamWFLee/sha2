@@ -85,12 +85,14 @@ def test_empty_hash(hasher):
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
 
+
 def test_non_empty_hash(hasher):
     hasher.update(b"abc")
     assert (
         hasher.hexdigest()
         == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
     )
+
 
 def test_longer_hash(hasher):
     hasher.update(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")
