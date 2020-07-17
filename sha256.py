@@ -92,7 +92,7 @@ class SHA2(ABC):
         blocks = []
 
         for i in range(0, len(m) // (cls.BLOCK_SIZE // 8)):
-            block = m[i * (cls.BLOCK_SIZE // 8) : (i + 1) + (cls.BLOCK_SIZE // 8)]
+            block = m[i * (cls.BLOCK_SIZE // 8) : (i + 1) * (cls.BLOCK_SIZE // 8)]
             words = []
             for j in range(0, (cls.BLOCK_SIZE // 8), (cls.WORD_SIZE // 8)):
                 words += [int.from_bytes(block[j : j + (cls.WORD_SIZE // 8)], "big")]
