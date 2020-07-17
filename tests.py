@@ -34,8 +34,8 @@ def test_maj():
     assert SHA256.maj(0b101010, 0b010101, 0b000000) == 0b000000
 
 
-def test_preprocess():
-    assert SHA256._preprocess(b"") == [
+def test_process_last_block(hasher):
+    assert hasher._process_last_block() == [
         [
             0x80000000,
             0x00000000,
@@ -55,7 +55,9 @@ def test_preprocess():
             0x00000000,
         ]
     ]
-    assert SHA256._preprocess(b"abc") == [
+
+    hasher.update(b"abc")
+    assert hasher._process_last_block() == [
         [
             0x61626380,
             0x00000000,
@@ -77,23 +79,23 @@ def test_preprocess():
     ]
 
 
-def test_hash(hasher):
+def test_empty_hash(hasher):
     assert (
-        hasher.to_hex(hasher.compute_hash(b""))
+        hasher.hexdigest()
         == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
 
+def test_non_empty_hash(hasher):
+    hasher.update(b"abc")
     assert (
-        hasher.to_hex(hasher.compute_hash(b"abc"))
+        hasher.hexdigest()
         == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
     )
 
+def test_longer_hash(hasher):
+    hasher.update(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")
     assert (
-        hasher.to_hex(
-            hasher.compute_hash(
-                b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
-            )
-        )
+        hasher.hexdigest()
         == "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
     )
 
