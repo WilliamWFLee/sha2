@@ -151,7 +151,7 @@ class SHA2(ABC):
             ]
 
     def update(self, message: bytes):
-        blocks, self._last_block = self._process(message)
+        blocks, self._last_block = self._process(self._last_block + message)
         self._compress(blocks)
 
     def digest(self):
