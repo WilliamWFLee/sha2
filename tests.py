@@ -1,6 +1,6 @@
 import pytest
 
-from sha256 import SHA256
+from sha2 import SHA256
 
 
 @pytest.fixture
