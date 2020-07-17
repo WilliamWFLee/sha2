@@ -21,6 +21,11 @@ class SHA2(ABC):
     H: tuple
 
     def __init__(self, message: Optional[bytes] = None):
+        """Creates a new SHA256 hash object
+
+        :param message: The initial message to add to the hash - equivalent to calling `update()`-  defaults to None
+        :type message: Optional[bytes], optional
+        """
         # The current state of the hash algorithm
         self._hash = list(self.H)
         # The last block (complete or partial) to be added to the hash object
@@ -33,21 +38,24 @@ class SHA2(ABC):
 
     @property
     def message_length(self):
+        """
+        The message length being digested in bits
+        """
         return self._message_length
 
     @staticmethod
-    def to_hex(digest: bytes):
+    def _to_hex(digest: bytes):
         return f"{int.from_bytes(digest, 'big'):x}"
 
     @classmethod
-    def bit_not(cls, x):
+    def _bit_not(cls, x):
         """Implements a bitwise NOT operation on x 
         as if it were an unsigned integer of length `cls.WORD_SIZE`.
         """
         return (1 << cls.WORD_SIZE) - 1 - x
 
     @classmethod
-    def r_rotate(cls, x, n):
+    def _r_rotate(cls, x, n):
         """
         Implements a right rotation of an integer `x` by `n` places,
         to give an integer of length `cls.WORD_SIZE`.
@@ -56,15 +64,15 @@ class SHA2(ABC):
 
     # The six logical functions used in the SHA-256
     @classmethod
-    def ch(cls, x, y, z):
+    def _ch(cls, x, y, z):
         """For each binary digit, the binary digit of `y`
         is chosen if the corresponding digit in `x` is `1`,
         otherwise the binary digit of `z` is chosen.
         """
-        return (x & y) ^ (cls.bit_not(x) & z)
+        return (x & y) ^ (cls._bit_not(x) & z)
 
     @staticmethod
-    def maj(x, y, z):
+    def _maj(x, y, z):
         """A majority function.
 
         For each binary digit, it is `1` if a majority of `x`, `y` or `z`
@@ -74,22 +82,22 @@ class SHA2(ABC):
 
     @classmethod
     @abstractmethod
-    def usigma_0(cls, x):
+    def _usigma_0(cls, x):
         pass
 
     @classmethod
     @abstractmethod
-    def usigma_1(cls, x):
+    def _usigma_1(cls, x):
         pass
 
     @classmethod
     @abstractmethod
-    def sigma_0(cls, x):
+    def _sigma_0(cls, x):
         pass
 
     @classmethod
     @abstractmethod
-    def sigma_1(cls, x):
+    def _sigma_1(cls, x):
         pass
 
     @classmethod
@@ -114,7 +122,7 @@ class SHA2(ABC):
         w = words[:]
         for i in range(16, len(cls.K)):
             w += [
-                (cls.sigma_1(w[i - 2]) + w[i - 7] + cls.sigma_0(w[i - 15]) + w[i - 16])
+                (cls._sigma_1(w[i - 2]) + w[i - 7] + cls._sigma_0(w[i - 15]) + w[i - 16])
                 % 2 ** cls.WORD_SIZE
             ]
 
@@ -140,8 +148,8 @@ class SHA2(ABC):
             a, b, c, d, e, f, g, h = self._hash
             W = self._expand_message_block(block)
             for w, k in zip(W, self.K):
-                t1 = h + self.usigma_1(e) + self.ch(e, f, g) + k + w
-                t2 = self.usigma_0(a) + self.maj(a, b, c)
+                t1 = h + self._usigma_1(e) + self._ch(e, f, g) + k + w
+                t2 = self._usigma_0(a) + self._maj(a, b, c)
 
                 h = g
                 g = f
@@ -171,7 +179,7 @@ class SHA2(ABC):
         return digest
 
     def hexdigest(self):
-        return self.to_hex(self.digest())
+        return self._to_hex(self.digest())
 
 
 class SHA256(SHA2):
@@ -263,20 +271,20 @@ class SHA256(SHA2):
     )
 
     @classmethod
-    def usigma_0(cls, x):
-        return cls.r_rotate(x, 2) ^ cls.r_rotate(x, 13) ^ cls.r_rotate(x, 22)
+    def _usigma_0(cls, x):
+        return cls._r_rotate(x, 2) ^ cls._r_rotate(x, 13) ^ cls._r_rotate(x, 22)
 
     @classmethod
-    def usigma_1(cls, x):
-        return cls.r_rotate(x, 6) ^ cls.r_rotate(x, 11) ^ cls.r_rotate(x, 25)
+    def _usigma_1(cls, x):
+        return cls._r_rotate(x, 6) ^ cls._r_rotate(x, 11) ^ cls._r_rotate(x, 25)
 
     @classmethod
-    def sigma_0(cls, x):
-        return cls.r_rotate(x, 7) ^ cls.r_rotate(x, 18) ^ (x >> 3)
+    def _sigma_0(cls, x):
+        return cls._r_rotate(x, 7) ^ cls._r_rotate(x, 18) ^ (x >> 3)
 
     @classmethod
-    def sigma_1(cls, x):
-        return cls.r_rotate(x, 17) ^ cls.r_rotate(x, 19) ^ (x >> 10)
+    def _sigma_1(cls, x):
+        return cls._r_rotate(x, 17) ^ cls._r_rotate(x, 19) ^ (x >> 10)
 
 
 if __name__ == "__main__":
