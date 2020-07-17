@@ -1,6 +1,6 @@
 import math
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 
 class SHA2(ABC):
@@ -20,13 +20,16 @@ class SHA2(ABC):
     # The initial hash value, as a tuple of word-sized integers
     H: tuple
 
-    def __init__(self):
+    def __init__(self, message: Optional[bytes] = None):
         # The current state of the hash algorithm
         self._hash = list(self.H)
         # The last block (complete or partial) to be added to the hash object
         self._last_block = b""
         # The length of the message in bits
         self._message_length = 0
+
+        if message is not None:
+            self.update(message)
 
     @property
     def message_length(self):
