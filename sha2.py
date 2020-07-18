@@ -175,7 +175,7 @@ class SHA2(metaclass=SHA2Meta):
         Pads the final part of the message, and processes it into blocks
         """
         m = self._last_block
-        k = ((self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - len(m)) * 8 - 1) % self._MODULO
+        k = ((self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - len(m)) * 8 - 1) % (self.BLOCK_SIZE * 8)
         zeroes = (1 << k).to_bytes((k + 1) // 8, "big")
         length = self._message_length.to_bytes(self.LENGTH_BLOCK_SIZE, "big")
         m = m + zeroes + length
