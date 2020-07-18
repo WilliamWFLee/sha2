@@ -26,18 +26,28 @@ SOFTWARE.
 
 
 import math
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Tuple
 
 
-class SHA2(ABC):
+class SHA2Meta(ABCMeta):
+    def __init__(self, name, bases, dct):
+        """
+        Modulo used for addditon
+        """
+        super().__init__(name, bases, dct)
+        if "WORD_SIZE" in dct:
+            self._MODULO = 2 ** (self.WORD_SIZE * 8)
+
+
+class SHA2(metaclass=SHA2Meta):
     """
     Base class for SHA-2 hash objects
     """
 
-    # The number of bits used in calculations
+    # The number of bytes used in calculations
     WORD_SIZE: int
-    # The size of blocks in bits for each loop of the compression function
+    # The size of blocks in bytes for each loop of the compression function
     BLOCK_SIZE: int
     # The size of the block appended to the message, indicating the length of the message
     LENGTH_BLOCK_SIZE: int
@@ -66,7 +76,7 @@ class SHA2(ABC):
     @property
     def message_length(self):
         """
-        The message length being digested in bits
+        The message length being digested in bytes
         """
         return self._message_length
 
@@ -79,7 +89,7 @@ class SHA2(ABC):
         """Implements a bitwise NOT operation on x 
         as if it were an unsigned integer of length `cls.WORD_SIZE`.
         """
-        return (1 << cls.WORD_SIZE) - 1 - x
+        return (1 << cls.WORD_SIZE * 8) - 1 - x
 
     @classmethod
     def _r_rotate(cls, x, n):
@@ -87,7 +97,7 @@ class SHA2(ABC):
         Implements a right rotation of an integer `x` by `n` places,
         to give an integer of length `cls.WORD_SIZE`.
         """
-        return ((x >> n) | x << (cls.WORD_SIZE - n)) % (2 ** cls.WORD_SIZE)
+        return ((x >> n) | x << (cls.WORD_SIZE * 8 - n)) % cls._MODULO
 
     # The six logical functions used in the SHA-256
     @classmethod
@@ -135,22 +145,27 @@ class SHA2(ABC):
         """
         blocks = []
 
-        for i in range(0, len(m) // (cls.BLOCK_SIZE // 8)):
-            block = m[i * (cls.BLOCK_SIZE // 8) : (i + 1) * (cls.BLOCK_SIZE // 8)]
+        for i in range(0, len(m) // cls.BLOCK_SIZE):
+            block = m[i * cls.BLOCK_SIZE : (i + 1) * cls.BLOCK_SIZE]
             words = []
-            for j in range(0, (cls.BLOCK_SIZE // 8), (cls.WORD_SIZE // 8)):
-                words += [int.from_bytes(block[j : j + (cls.WORD_SIZE // 8)], "big")]
+            for j in range(0, cls.BLOCK_SIZE, cls.WORD_SIZE):
+                words += [int.from_bytes(block[j : j + cls.WORD_SIZE], "big")]
             blocks += [words]
 
-        return blocks, m[len(m) // (cls.BLOCK_SIZE // 8) * (cls.BLOCK_SIZE // 8) :]
+        return blocks, m[len(m) // cls.BLOCK_SIZE * cls.BLOCK_SIZE :]
 
     @classmethod
     def _expand_message_block(cls, words):
         w = words[:]
         for i in range(16, len(cls.K)):
             w += [
-                (cls._sigma_1(w[i - 2]) + w[i - 7] + cls._sigma_0(w[i - 15]) + w[i - 16])
-                % 2 ** cls.WORD_SIZE
+                (
+                    cls._sigma_1(w[i - 2])
+                    + w[i - 7]
+                    + cls._sigma_0(w[i - 15])
+                    + w[i - 16]
+                )
+                % cls._MODULO
             ]
 
         return w
@@ -160,11 +175,9 @@ class SHA2(ABC):
         Pads the final part of the message, and processes it into blocks
         """
         m = self._last_block
-        k = (
-            self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - 1 - len(m) * 8
-        ) % self.BLOCK_SIZE
+        k = ((self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - len(m)) * 8 - 1) % self._MODULO
         zeroes = (1 << k).to_bytes((k + 1) // 8, "big")
-        length = self._message_length.to_bytes(self.LENGTH_BLOCK_SIZE // 8, "big")
+        length = self._message_length.to_bytes(self.LENGTH_BLOCK_SIZE, "big")
         m = m + zeroes + length
 
         blocks, _ = self._process(m)
@@ -181,14 +194,14 @@ class SHA2(ABC):
                 h = g
                 g = f
                 f = e
-                e = (d + t1) % (2 ** self.WORD_SIZE)
+                e = (d + t1) % self._MODULO
                 d = c
                 c = b
                 b = a
-                a = (t1 + t2) % (2 ** self.WORD_SIZE)
+                a = (t1 + t2) % self._MODULO
 
             self._hash = [
-                (r + w) % (2 ** self.WORD_SIZE)
+                (r + w) % self._MODULO
                 for r, w in zip((a, b, c, d, e, f, g, h), self._hash)
             ]
 
@@ -200,7 +213,7 @@ class SHA2(ABC):
     def digest(self):
         last_hash = self._hash[:]
         self._compress(self._process_last_block())
-        digest = b"".join(h.to_bytes(self.WORD_SIZE // 8, "big") for h in self._hash)
+        digest = b"".join(h.to_bytes(self.WORD_SIZE, "big") for h in self._hash)
         self._hash = last_hash
 
         return digest
@@ -214,9 +227,9 @@ class SHA256(SHA2):
     Class for SHA256 hash objects
     """
 
-    WORD_SIZE = 32
-    BLOCK_SIZE = 512
-    LENGTH_BLOCK_SIZE = 64
+    WORD_SIZE = 4
+    BLOCK_SIZE = 64
+    LENGTH_BLOCK_SIZE = 8
     # These are the first 32 bits of the fractional part of the cube root
     # of the first 64 prime numbers
     K = (
@@ -316,5 +329,5 @@ class SHA256(SHA2):
 
 if __name__ == "__main__":
     sha256 = SHA256()
-    sha256.update(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")
+    sha256.update(b"abc")
     print(sha256.hexdigest())
