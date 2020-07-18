@@ -24,6 +24,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import argparse
+import os
+import sys
 from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Tuple
 
@@ -211,7 +214,7 @@ class SHA2(metaclass=SHA2Meta):
                 chunk = chunk.to_bytes(1, "big")
             blocks, self._last_block = self._process(self._last_block + chunk)
             self._compress(blocks)
-        self._message_length += len(message) * 8
+            self._message_length += len(chunk) * 8
 
     def digest(self):
         last_hash = self._hash[:]
@@ -331,6 +334,20 @@ class SHA256(SHA2):
 
 
 if __name__ == "__main__":
-    sha256 = SHA256()
-    sha256.update(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")
-    print(sha256.hexdigest())
+    parser = argparse.ArgumentParser(
+        prog="sha2",
+        description="SHA-2 family of secure hash algorithms written in Python",
+    )
+
+    parser.add_argument("filename", default=None, nargs="?")
+    args = parser.parse_args()
+
+    if args.filename is None:
+        file = sys.stdin.buffer.raw
+    else:
+        if not os.path.exists(args.filename):
+            parser.error(f"{args.filename} does not exist")
+        file = open(args.filename, "rb")
+
+    hasher = SHA256(file)
+    print(hasher.hexdigest(), "-" if args.filename is None else args.filename)
