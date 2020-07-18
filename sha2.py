@@ -205,9 +205,12 @@ class SHA2(metaclass=SHA2Meta):
                 for r, w in zip((a, b, c, d, e, f, g, h), self._hash)
             ]
 
-    def update(self, message: bytes):
-        blocks, self._last_block = self._process(self._last_block + message)
-        self._compress(blocks)
+    def update(self, message):
+        for chunk in message:
+            if isinstance(chunk, int):
+                chunk = chunk.to_bytes(1, "big")
+            blocks, self._last_block = self._process(self._last_block + chunk)
+            self._compress(blocks)
         self._message_length += len(message) * 8
 
     def digest(self):
@@ -329,5 +332,5 @@ class SHA256(SHA2):
 
 if __name__ == "__main__":
     sha256 = SHA256()
-    sha256.update(b"abc")
+    sha256.update(b"abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq")
     print(sha256.hexdigest())
