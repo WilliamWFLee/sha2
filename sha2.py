@@ -24,8 +24,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-
-import math
 from abc import ABCMeta, abstractmethod
 from typing import List, Optional, Tuple
 
@@ -60,7 +58,7 @@ class SHA2(metaclass=SHA2Meta):
     def __init__(self, message: Optional[bytes] = None):
         """Creates a new SHA256 hash object
 
-        :param message: The initial message to add to the hash - equivalent to calling `update()`-  defaults to None
+        :param message: The initial message to add to the hash, defaults to None
         :type message: Optional[bytes], optional
         """
         # The current state of the hash algorithm
@@ -86,7 +84,7 @@ class SHA2(metaclass=SHA2Meta):
 
     @classmethod
     def _bit_not(cls, x):
-        """Implements a bitwise NOT operation on x 
+        """Implements a bitwise NOT operation on x
         as if it were an unsigned integer of length `cls.WORD_SIZE`.
         """
         return (1 << cls.WORD_SIZE * 8) - 1 - x
@@ -175,7 +173,9 @@ class SHA2(metaclass=SHA2Meta):
         Pads the final part of the message, and processes it into blocks
         """
         m = self._last_block
-        k = ((self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - len(m)) * 8 - 1) % (self.BLOCK_SIZE * 8)
+        k = ((self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - len(m)) * 8 - 1) % (
+            self.BLOCK_SIZE * 8
+        )
         zeroes = (1 << k).to_bytes((k + 1) // 8, "big")
         length = self._message_length.to_bytes(self.LENGTH_BLOCK_SIZE, "big")
         m = m + zeroes + length
