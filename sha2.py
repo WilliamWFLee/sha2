@@ -26,10 +26,11 @@ SOFTWARE.
 """
 
 import argparse
+import io
 import os
 import sys
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 
 class SHA2Meta(ABCMeta):
@@ -56,6 +57,8 @@ class SHA2(metaclass=SHA2Meta):
     K: tuple
     # The initial hash value, as a tuple of word-sized integers
     H: tuple
+
+    _CHUNK_SIZE = 8192
 
     def __init__(self, message: Optional[bytes] = None):
         """Creates a new SHA256 hash object
@@ -207,10 +210,14 @@ class SHA2(metaclass=SHA2Meta):
                 for r, w in zip((a, b, c, d, e, f, g, h), self._hash)
             ]
 
-    def update(self, message):
-        for chunk in message:
-            if isinstance(chunk, int):
-                chunk = chunk.to_bytes(1, "big")
+    def update(self, message: Union[io.BufferedReader, bytes]):
+        if isinstance(message, bytes):
+            message = io.BytesIO(message)
+        reading = True
+        while reading:
+            chunk = message.read(self._CHUNK_SIZE)
+            if not chunk:
+                break
             blocks, self._last_block = self._process(self._last_block + chunk)
             self._compress(blocks)
             self._message_length += len(chunk) * 8
