@@ -51,8 +51,6 @@ class SHA2(metaclass=SHA2Meta):
     WORD_SIZE: int
     # The size of blocks in bytes for each loop of the compression function
     BLOCK_SIZE: int
-    # The size of the block appended to the message, indicating the length of the message
-    LENGTH_BLOCK_SIZE: int
     # Constant words used in the compression function, a tuple of word-sized integers
     # Derived from various prime numbers
     K: tuple
@@ -177,11 +175,11 @@ class SHA2(metaclass=SHA2Meta):
         Pads the final part of the message, and processes it into blocks
         """
         m = self._last_block
-        k = ((self.BLOCK_SIZE - self.LENGTH_BLOCK_SIZE - len(m)) * 8 - 1) % (
+        k = ((self.BLOCK_SIZE - self.WORD_SIZE * 2 - len(m)) * 8 - 1) % (
             self.BLOCK_SIZE * 8
         )
         zeroes = (1 << k).to_bytes((k + 1) // 8, "big")
-        length = self._message_length.to_bytes(self.LENGTH_BLOCK_SIZE, "big")
+        length = self._message_length.to_bytes(self.WORD_SIZE * 2, "big")
         m = m + zeroes + length
 
         blocks, _ = self._process(m)
@@ -236,7 +234,6 @@ class SHA256(SHA2):
 
     WORD_SIZE = 4
     BLOCK_SIZE = 64
-    LENGTH_BLOCK_SIZE = 8
     # These are the first 32 bits of the fractional part of the cube root
     # of the first 64 prime numbers
     K = (
