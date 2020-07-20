@@ -34,10 +34,10 @@ from typing import List, Optional, Tuple, Union
 
 
 class SHA2Meta(ABCMeta):
+    """
+    Meta class for SHA2 hash objects
+    """
     def __init__(self, name, bases, dct):
-        """
-        Modulo used for addditon
-        """
         super().__init__(name, bases, dct)
         if "WORD_SIZE" in dct:
             self._MODULO = 2 ** (self.WORD_SIZE * 8)
