@@ -29,11 +29,6 @@ def test_ch():
     assert SHA256._ch(0b000000, 0b100101, 0b111010) == 0b111010
 
 
-def test_maj():
-    assert SHA256._maj(0b110011, 0b101010, 0b001010) == 0b101010
-    assert SHA256._maj(0b101010, 0b010101, 0b000000) == 0b000000
-
-
 def test_process_last_block(hasher):
     assert hasher._process_last_block() == [
         [
