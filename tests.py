@@ -111,4 +111,3 @@ def test_split_content(hasher):
         hasher.hexdigest()
         == "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1"
     )
-
