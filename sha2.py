@@ -58,7 +58,7 @@ class SHA2(metaclass=SHA2Meta):
     # The initial hash value, as a tuple of word-sized integers
     H: tuple
 
-    _CHUNK_SIZE = 8192
+    _CHUNK_SIZE = 8 * 1024 ** 2
 
     def __init__(self, message: Optional[bytes] = None):
         """Creates a new SHA256 hash object
@@ -109,7 +109,7 @@ class SHA2(metaclass=SHA2Meta):
         is chosen if the corresponding digit in `x` is `1`,
         otherwise the binary digit of `z` is chosen.
         """
-        return (x & y) ^ (cls._bit_not(x) & z)
+        return (x & y) | (cls._bit_not(x) & z)
 
     @staticmethod
     def _maj(x, y, z):
@@ -118,7 +118,7 @@ class SHA2(metaclass=SHA2Meta):
         For each binary digit, it is `1` if a majority of `x`, `y` or `z`
         have `1` in the corresponding place, otherwise it is `0`.
         """
-        return (x & y) ^ (x & z) ^ (y & z)
+        return (x & y) | (x & z) | (y & z)
 
     @classmethod
     @abstractmethod
@@ -158,8 +158,7 @@ class SHA2(metaclass=SHA2Meta):
         return blocks, m[len(m) // cls.BLOCK_SIZE * cls.BLOCK_SIZE :]
 
     @classmethod
-    def _expand_message_block(cls, words):
-        w = words[:]
+    def _expand_message_block(cls, w):
         for i in range(16, len(cls.K)):
             w += [
                 (
@@ -170,8 +169,6 @@ class SHA2(metaclass=SHA2Meta):
                 )
                 % cls._MODULO
             ]
-
-        return w
 
     def _process_last_block(self) -> List[List[int]]:
         """
@@ -191,8 +188,8 @@ class SHA2(metaclass=SHA2Meta):
     def _compress(self, blocks: List[List[int]]):
         for block in blocks:
             a, b, c, d, e, f, g, h = self._hash
-            W = self._expand_message_block(block)
-            for w, k in zip(W, self.K):
+            self._expand_message_block(block)
+            for w, k in zip(block, self.K):
                 t1 = h + self._usigma_1(e) + self._ch(e, f, g) + k + w
                 t2 = self._usigma_0(a) + self._maj(a, b, c)
 
