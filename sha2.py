@@ -342,6 +342,21 @@ class SHA256(SHA2):
         return cls._r_rotate(x, 17) ^ cls._r_rotate(x, 19) ^ (x >> 10)
 
 
+class SHA224(SHA256):
+    H = (
+        0xC1059ED8,
+        0x367CD507,
+        0x3070DD17,
+        0xF70E5939,
+        0xFFC00B31,
+        0x68581511,
+        0x64F98FA7,
+        0xBEFA4FA4,
+    )
+
+    DIGEST_LENGTH = 7
+
+
 class SHA512(SHA2):
     """
     Class for SHA512 hash objects
@@ -462,6 +477,21 @@ class SHA512(SHA2):
     @classmethod
     def _sigma_1(cls, x):
         return cls._r_rotate(x, 19) ^ cls._r_rotate(x, 61) ^ (x >> 6)
+
+
+class SHA384(SHA512):
+    H = (
+        0xCBBB9D5DC1059ED8,
+        0x629A292A367CD507,
+        0x9159015A3070DD17,
+        0x152FECD8F70E5939,
+        0x67332667FFC00B31,
+        0x8EB44A8768581511,
+        0xDB0C2E0D64F98FA7,
+        0x47B5481DBEFA4FA4,
+    )
+
+    DIGEST_LENGTH = 6
 
 
 if __name__ == "__main__":
