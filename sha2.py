@@ -53,6 +53,9 @@ class SHA2(metaclass=SHA2Meta):
     WORD_SIZE: int
     # The size of blocks in bytes for each loop of the compression function
     BLOCK_SIZE: int
+    # Digest length, as the number of words used from the hash values.
+    # Defaults to None to use all of them
+    DIGEST_LENGTH: Optional[int] = None
     # Constant words used in the compression function, a tuple of word-sized integers
     # Derived from various prime numbers
     K: tuple
@@ -223,7 +226,9 @@ class SHA2(metaclass=SHA2Meta):
     def digest(self):
         last_hash = self._hash[:]
         self._compress(self._process_last_block())
-        digest = b"".join(h.to_bytes(self.WORD_SIZE, "big") for h in self._hash)
+        digest = b"".join(
+            h.to_bytes(self.WORD_SIZE, "big") for h in self._hash[: self.DIGEST_LENGTH]
+        )
         self._hash = last_hash
 
         return digest
